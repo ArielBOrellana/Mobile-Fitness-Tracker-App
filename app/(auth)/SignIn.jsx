@@ -6,10 +6,14 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
+import { useState } from "react";
 import { Chromium } from "lucide-react-native";
-import { Link } from "expo-router";
+import { Link, useNavigation } from "expo-router";
+import OAuth from "../components/OAuth";
 
 const SignIn = () => {
+  const [formData, setFormData] = useState({});
+  const navigate = useNavigation(); 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -59,12 +63,7 @@ const SignIn = () => {
         </View>
 
         {/* Social Login */}
-        <View style={styles.socialContainer}>
-          <View style={styles.socialButton}>
-            <Chromium size={20} color="white" />
-            <Text style={styles.socialText}>Google</Text>
-          </View>
-        </View>
+        <OAuth/>
 
         {/* Sign Up Link */}
         <View style={styles.signUpContainer}>
@@ -187,31 +186,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.8)",
     fontSize: 14,
     marginHorizontal: 8,
-  },
-
-  // Social buttons
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  socialButton: {
-    flex: 1,
-    height: 48,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    marginHorizontal: 4,
-  },
-  socialText: {
-    color: "#fff",
-    fontWeight: "500",
-    fontSize: 14,
-    marginLeft: 8,
   },
 
   // Sign up link

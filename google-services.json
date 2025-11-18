@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1059269521389",
+    "project_id": "fitness-tracker-17a7a",
+    "storage_bucket": "fitness-tracker-17a7a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1059269521389:android:0e041ceb15c9e1bc6e01e4",
+        "android_client_info": {
+          "package_name": "com.example.Project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1059269521389-bn2p60jr83976jevpjnel818lqa878vm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.Project",
+            "certificate_hash": "84fd33fc37d2fc7702fc9241c4a625ff83653232"
+          }
+        },
+        {
+          "client_id": "1059269521389-tgejo1uk7ed2hvkc4mn5oeh6rru81aag.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuJVRWs7R-z9U3iZjaIcm7sk5HeB4OvMg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1059269521389-m7bml1sfo2khec2cpk4dtn43tgc5av5t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1059269521389-fs30dvua0f4lsp4auj5juhgttl8lmbvu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.Project"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
