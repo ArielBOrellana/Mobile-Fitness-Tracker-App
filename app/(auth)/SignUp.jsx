@@ -6,10 +6,30 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
-import { Chromium } from "lucide-react-native";
-import { Link } from "expo-router";
+import { useState } from "react";
+import { Link, useRouter } from "expo-router";
+import { useDispatch } from 'react-redux';
+// import { signInSuccess } from '../../redux/user/userSlice'; // Import your actual action
 
 const SignUp = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  
+  // Use useRouter for imperative navigation (like after a login function)
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const handleLogin = () => {
+    // --- TODO: Add your real API call here ---
+    
+    // const user = await api.login(email, password);
+    // dispatch(signInSuccess(user)); 
+    
+    // After Redux is updated, we manually push to Home to ensure a smooth transition
+    router.replace("/(tabs)/Home");
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -22,13 +42,37 @@ const SignUp = () => {
           <Text style={styles.subtitle}>Track your fitness journey</Text>
         </View>
 
+         {/* Username Input */}
+        <View style={styles.card}>
+          <View style={styles.cardContent}>
+            <Text style={styles.label}>Username</Text>
+            <View style={styles.inputWrapper}>
+              <View style={styles.inputBox}>
+                <TextInput 
+                  style={styles.inputText}
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="Enter your username"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Email Input */}
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrapper}>
               <View style={styles.inputBox}>
-                <TextInput />
+                <TextInput 
+                  style={styles.inputText}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter your email"
+                  autoCapitalize="none"
+                />
               </View>
             </View>
           </View>
@@ -40,31 +84,22 @@ const SignUp = () => {
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrapper}>
               <View style={styles.inputBox}>
-                <TextInput secureTextEntry />
+                <TextInput 
+                  style={styles.inputText}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry 
+                  placeholder="Enter your password"
+                />
               </View>
             </View>
           </View>
         </View>
 
         {/* Login Button */}
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginText}>Sign Up</Text>
         </TouchableOpacity>
-
-        {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Social Login */}
-        <View style={styles.socialContainer}>
-          <View style={styles.socialButton}>
-            <Chromium size={20} color="white" />
-            <Text style={styles.socialText}>Google</Text>
-          </View>
-        </View>
 
         {/* Sign In Link */}
         <View style={styles.signInContainer}>
@@ -83,16 +118,13 @@ const SignUp = () => {
 export default SignUp;
 
 const styles = StyleSheet.create({
-  // Main container
   container: {
     flex: 1,
-    backgroundColor: "#4338CA", // Indigo-700
+    backgroundColor: "#4338CA",
   },
   scrollContent: {
     padding: 24,
   },
-
-  // Logo
   logoContainer: {
     marginTop: 48,
     marginBottom: 32,
@@ -120,8 +152,6 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#E0E7FF",
   },
-
-  // Card (email/password boxes)
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -149,13 +179,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#D1D5DB",
     justifyContent: "center",
-    paddingLeft: 44,
+    paddingLeft: 16,
   },
   inputText: {
     color: "#111827",
+    height: 48,
+    width: '100%',
   },
-
-  // Login button
   loginButton: {
     backgroundColor: "#fff",
     height: 56,
@@ -171,50 +201,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
   },
-
-  // Divider
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-  dividerText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
-    marginHorizontal: 8,
-  },
-
-  // Social buttons
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  socialButton: {
-    flex: 1,
-    height: 48,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.2)",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    marginHorizontal: 4,
-  },
-  socialText: {
-    color: "#fff",
-    fontWeight: "500",
-    fontSize: 14,
-    marginLeft: 8,
-  },
-
-  // Sign up link
   signInContainer: {
     alignItems: "center",
     paddingTop: 16,
@@ -225,20 +211,6 @@ const styles = StyleSheet.create({
   signInLink: {
     fontWeight: "600",
     textDecorationLine: "underline",
-  },
-
-  // Terms & privacy
-  termsContainer: {
-    alignItems: "center",
-    marginTop: 32,
-    paddingBottom: 24,
-  },
-  termsText: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.6)",
-    textAlign: "center",
-  },
-  link: {
-    textDecorationLine: "underline",
+    color: "#fff"
   },
 });
