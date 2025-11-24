@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { Link, useRouter } from "expo-router";
+import Constants from 'expo-constants';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -20,7 +21,11 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const API_URL = process.env.EXPO_PUBLIC_API_URL || "192.168.1.13"; // Fallback to local IP if not set
+  // Read API URL from Expo config `extra.apiUrl` (falls back to hardcoded local IP)
+  const API_URL =
+    Constants.expoConfig?.extra?.apiUrl ||
+    Constants.manifest?.extra?.apiUrl ||
+    "http://192.168.1.13:3000";
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({
@@ -45,15 +50,18 @@ export default function SignUp() {
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-
-      if (data.success === false) {
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const message = errBody.message || res.statusText || "Sign up failed";
         setLoading(false);
-        Alert.alert("Sign Up Failed", data.message);
+        Alert.alert("Sign Up Failed", message);
         return;
       }
 
+      const data = await res.json().catch(() => ({}));
+
       setLoading(false);
+      // Backend currently returns a plain string on success; show a friendly message
       Alert.alert("Success", "Account created! Please sign in.");
       router.replace("/(auth)/SignIn");
     } catch (error) {
@@ -136,12 +144,6 @@ export default function SignUp() {
             <Text style={styles.loginText}>Sign Up</Text>
           )}
         </TouchableOpacity>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View>
 
         <View style={styles.signInContainer}>
           <Text style={styles.signInText}>

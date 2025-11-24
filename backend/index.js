@@ -41,7 +41,9 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 3000;
+const host = '0.0.0.0'; // Explicitly set host to 0.0.0.0
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+// START SERVER, ensuring it listens on all available interfaces (0.0.0.0)
+app.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
 });

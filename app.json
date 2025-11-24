@@ -51,6 +51,7 @@
         "root": "./app",
         "exclude": ["components"]
       },
+      "apiUrl": "http://192.168.1.13:3000",
       "eas": {
         "projectId": "4cb648b8-4a4b-48c6-ba34-3c6b6488f8a7"
       }
