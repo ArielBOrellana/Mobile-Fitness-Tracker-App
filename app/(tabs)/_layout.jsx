@@ -39,10 +39,10 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Tab 2: Example Profile (Commented out)
-        To enable this, create app/(tabs)/Profile.jsx
+      {/* Tab 2: Profile
+        This maps to app/(tabs)/Profile.jsx
       */}
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name="Profile"
         options={{
           title: 'Profile',
@@ -52,7 +52,6 @@ export default function TabLayout() {
           ),
         }}
       /> 
-      */}
     </Tabs>
   );
 }

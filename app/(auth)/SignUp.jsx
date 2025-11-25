@@ -21,8 +21,9 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Read API URL from Expo config `extra.apiUrl` (falls back to hardcoded local IP)
+  // Read API URL from environment variable, then app.json config, then hardcoded fallback
   const API_URL =
+    process.env.EXPO_PUBLIC_API_URL ||
     Constants.expoConfig?.extra?.apiUrl ||
     Constants.manifest?.extra?.apiUrl ||
     "http://192.168.1.13:3000";
