@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -6,7 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MaterialIcons } from 'expo-vector-icons';
+import { MaterialIcons, Feather } from 'expo-vector-icons';
+import { useSelector, useDispatch } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { Alert, TextInput } from 'react-native';
+import Constants from 'expo-constants';
+import { signInSuccess } from '../../redux/user/userSlice';
 
 // --- Utility Components (React Native) ---
 
@@ -45,18 +49,71 @@ const ToggleSwitch = ({ enabled }) => (
 
 export default function Profile() {
   const preferences = [
-    { icon: 'nights-stay', title: 'Dark Mode', description: 'Switch to dark theme', enabled: false },
-    { icon: 'notifications', title: 'Push Notifications', description: 'Get reminded to workout', enabled: true },
+    { icon: 'notifications', title: 'Push Notifications', description: 'Get reminded to workout', enabled: false },
     { icon: 'track-changes', title: 'Goal Alerts', description: 'Alert when reaching milestones', enabled: true }
   ];
+
+  const { currentUser } = useSelector((state) => state.user)
+  const dispatch = useDispatch();
+
+  // API URL resolution using env var or app.json extra
+  const API_URL =
+    process.env.EXPO_PUBLIC_API_URL ||
+    Constants.expoConfig?.extra?.apiUrl ||
+    Constants.manifest?.extra?.apiUrl ||
+    "http://192.168.1.13:3000";
+
+  const [goalValue, setGoalValue] = useState(currentUser?.monthlyGoal ?? 0);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setGoalValue(currentUser?.monthlyGoal ?? 0);
+  }, [currentUser]);
+
+  const handleSaveGoal = async () => {
+    if (!currentUser?._id) {
+      Alert.alert('Not signed in', 'Please sign in to update your profile');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/api/user/update/${currentUser._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: currentUser?.token ? `Bearer ${currentUser.token}` : undefined,
+        },
+        body: JSON.stringify({ monthlyGoal: Number(goalValue) }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || res.statusText || 'Update failed');
+      }
+
+      const updated = await res.json();
+      // Keep token in store
+      const payload = { ...updated, token: currentUser.token };
+      dispatch(signInSuccess(payload));
+      Alert.alert('Saved', 'Monthly goal updated');
+    } catch (err) {
+      console.error('Update error', err);
+      Alert.alert('Error', err.message || 'Could not update goal');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const initialGoal = currentUser?.monthlyGoal ?? 0;
+  const isDirty = Number(goalValue) !== Number(initialGoal);
   
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         
         {/* Header */}
-        <View style={{ paddingTop: 8 }}>
-          <Text style={styles.headerText}>Settings & Profile</Text>
+        <View>
+          <Text style={styles.headerText}>Profile & Settings</Text>
         </View>
 
         {/* Profile Section */}
@@ -69,36 +126,57 @@ export default function Profile() {
             <View style={{ flexDirection: 'column', gap: 24 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>SA</Text>
+                  <Text style={styles.avatarText}>{currentUser.username[0]}</Text>
                 </View>
 
                 <View style={{ flex: 1, gap: 16 }}>
-                  {/* Full Name */}
+                  {/* Username */}
                   <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Full Name</Text>
-                    <View style={styles.inputValue}>
-                      <Text style={styles.textValue}>Sarah Anderson</Text>
+                    <Text style={styles.inputLabel}>Username</Text>
+                    <View style={[styles.inputValue, { backgroundColor: 'transparent', borderWidth: 0, paddingVertical: 8 }]}> 
+                      <Text style={{ color: '#111827', fontSize: 16, fontWeight: '500' }}>{currentUser.username}</Text>
                     </View>
                   </View>
                   
-                  {/* Monthly Goal */}
+                  {/* Monthly Goal (editable) */}
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Monthly Goal</Text>
-                    <View style={styles.inputValue}>
-                      <Text style={styles.textValue}>25 workouts/month</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={[styles.inputValue, { flex: 1 }]}> 
+                        <TextInput
+                          value={String(goalValue)}
+                          onChangeText={(t) => setGoalValue(t.replace(/[^0-9]/g, ''))}
+                          keyboardType="numeric"
+                          style={{ color: '#111827', fontSize: 16 }}
+                          placeholder="0"
+                        />
+                      </View>
+                      {(isDirty || saving) && (
+                        <TouchableOpacity
+                          onPress={handleSaveGoal}
+                          style={{
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                            backgroundColor: saving ? '#7C3AED' : '#4F46E5',
+                            borderRadius: 8,
+                          }}
+                          disabled={saving}
+                        >
+                          <Text style={{ color: '#fff', fontWeight: '600' }}>{saving ? 'Saving...' : 'Save'}</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
+                    <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 8 }}>{String(goalValue)} workouts/month</Text>
                   </View>
                 </View>
               </View>
-
-              <TouchableOpacity style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialIcons name="edit" size={16} color="#4F46E5" />
-                  <Text style={styles.editButtonText}>Edit Profile</Text>
-              </TouchableOpacity>
             </View>
         </View>
 
-        {/* App Preferences */}
+
+        {/* App Preferences 
+            Make this interactive later
+        */}
         <View style={styles.card}>
             <View style={styles.sectionTitleContainer}>
               <MaterialIcons name="settings" size={20} color="#4B5563" />
@@ -122,26 +200,17 @@ export default function Profile() {
               ))}
             </View>
         </View>
-
-        {/* App Info */}
-        <View style={{...styles.card, padding: 16, alignItems: 'center' }}>
-            <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: 8 }}>FitnessTracker v2.1.0</Text>
-            <View style={{ flexDirection: 'row', gap: 16 }}>
-              <TouchableOpacity>
-                <Text style={{ color: '#4F46E5', fontSize: 14 }}>Terms of Service</Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text style={{ color: '#4F46E5', fontSize: 14 }}>Privacy Policy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Text style={{ color: '#4F46E5', fontSize: 14 }}>Help & Support</Text>
-              </TouchableOpacity>
-            </View>
-        </View>
       </ScrollView>
     </View>
   );
 }
+
+// Tab options for expo-router tab bar (file-system routing)
+export const options = {
+  title: 'Profile',
+  tabBarLabel: 'Profile',
+  tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
+};
 
 // --- Component Styles ---
 const styles = StyleSheet.create({
@@ -172,6 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800', // font-extrabold
     color: '#111827', // text-gray-900
+    paddingTop: 25
   },
   sectionTitleContainer: {
     flexDirection: 'row',

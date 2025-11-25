@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import {
   Home as HomeIcon,
   Plus,
@@ -102,7 +103,7 @@ export default function Home() {
           </View>
           <View style={styles.progressSection}>
             <View style={styles.progressTextRow}>
-              <Text style={styles.progressText}>Goal: 25 days</Text>
+              <Text style={styles.progressText}>{`Goal: ${currentUser.monthlyGoal}`}</Text>
               <Text style={styles.progressText}>Remaining: 7 days</Text>
             </View>
             <Progress 
@@ -237,6 +238,13 @@ export default function Home() {
     </View>
   );
 }
+
+// Tab options for expo-router tab bar (file-system routing)
+export const options = {
+  title: 'Home',
+  tabBarLabel: 'Home',
+  tabBarIcon: ({ color }) => <Feather name="home" size={24} color={color} />,
+};
 
 const styles = StyleSheet.create({
   // Global Layout

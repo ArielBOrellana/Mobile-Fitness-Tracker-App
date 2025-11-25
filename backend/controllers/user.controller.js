@@ -33,3 +33,23 @@ export const getUser = async (req, res, next) => {
         next(error)
     }
 }
+
+// Update user data (e.g., monthlyGoal). Requires the requester to be the user.
+export const updateUser = async (req, res, next) => {
+    if (req.user.id !== req.params.id) return next(errorHandler(401, 'You can only update your own account'));
+    try {
+        // Only update allowed fields to avoid privilege escalation
+        const allowed = {};
+        if (req.body.monthlyGoal !== undefined) allowed.monthlyGoal = req.body.monthlyGoal;
+        if (req.body.username !== undefined) allowed.username = req.body.username;
+        if (req.body.avatar !== undefined) allowed.avatar = req.body.avatar;
+
+        const updated = await User.findByIdAndUpdate(req.params.id, { $set: allowed }, { new: true });
+        if (!updated) return next(errorHandler(404, 'User not found'));
+
+        const { password: pass, ...rest } = updated._doc;
+        res.status(200).json(rest);
+    } catch (error) {
+        next(error);
+    }
+}

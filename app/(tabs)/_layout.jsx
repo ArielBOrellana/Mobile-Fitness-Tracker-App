@@ -1,57 +1,62 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons'; 
+import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
+import { useSegments } from 'expo-router';
+import { View, Text } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
-export default function TabLayout() {
+export default function Layout() {
+  const segments = useSegments();
+  const active = segments[segments.length - 1] ? segments[segments.length - 1].toLowerCase() : '';
+
+  const ACTIVE_COLOR = '#4338CA';
+  const INACTIVE_COLOR = '#9CA3AF';
+  const ACTIVE_BG = '#EEF2FF';
+
+  const tabStyle = (name) => ({
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: active === name.toLowerCase() ? ACTIVE_BG : 'transparent',
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginHorizontal: 6,
+  });
+
+  const iconColor = (name) => (active === name.toLowerCase() ? ACTIVE_COLOR : INACTIVE_COLOR);
+
   return (
-    <Tabs
-      screenOptions={{
-        // Active tab color (Indigo-700 to match your theme)
-        tabBarActiveTintColor: '#4338CA', 
-        // Inactive tab color (Gray-400)
-        tabBarInactiveTintColor: '#9CA3AF',
-        // Styling the tab bar to look clean and modern
-        tabBarStyle: {
+    <Tabs>
+      <TabSlot />
+      <TabList
+        style={{
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
           backgroundColor: '#FFFFFF',
-          height: 60,
+          height: 70,
           paddingBottom: 10,
           paddingTop: 10,
-        },
-        // Hides the standard header for all tabs by default 
-        // (since each screen usually has its own custom header or content)
-        headerShown: false, 
-      }}
-    >
-      {/* Tab 1: Home
-        This maps to app/(tabs)/Home.jsx 
-      */}
-      <Tabs.Screen
-        name="Home"
-        options={{
-          title: 'Home',
-          tabBarLabel: 'Home',
-          // Icon for the Home tab
-          tabBarIcon: ({ color }) => (
-            <FontAwesome name="home" size={24} color={color} />
-          ),
+          flexDirection: 'row',
+          justifyContent: 'space-around',
         }}
-      />
+      >
+        <TabTrigger name="Home" href="/(tabs)/Home" style={tabStyle('home')}>
+          <Feather name="home" size={24} color={iconColor('home')} />
+          <View style={{ height: 4 }} />
+          <Text style={{ fontSize: 12, color: iconColor('home') }}>Home</Text>
+        </TabTrigger>
 
-      {/* Tab 2: Profile
-        This maps to app/(tabs)/Profile.jsx
-      */}
-      <Tabs.Screen
-        name="Profile"
-        options={{
-          title: 'Profile',
-          tabBarLabel: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome name="user" size={24} color={color} />
-          ),
-        }}
-      /> 
+        <TabTrigger name="AddWorkout" href="/(tabs)/AddWorkout" style={tabStyle('addworkout')}>
+          <Feather name="plus" size={24} color={iconColor('addworkout')} />
+          <View style={{ height: 4 }} />
+          <Text style={{ fontSize: 12, color: iconColor('addworkout') }}>Add</Text>
+        </TabTrigger>
+
+        <TabTrigger name="Profile" href="/(tabs)/Profile" style={tabStyle('profile')}>
+          <Feather name="user" size={24} color={iconColor('profile')} />
+          <View style={{ height: 4 }} />
+          <Text style={{ fontSize: 12, color: iconColor('profile') }}>Profile</Text>
+        </TabTrigger>
+      </TabList>
     </Tabs>
   );
 }

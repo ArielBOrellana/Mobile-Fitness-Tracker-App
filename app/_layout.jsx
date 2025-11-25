@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Slot } from 'expo-router';
 import { Provider } from 'react-redux';
 import { LogBox } from 'react-native';
 import { store } from '../redux/store'; // Correct relative import
@@ -25,8 +25,8 @@ export default function RootLayout() {
   return (
     // Wrap the entire app with Redux Provider
     <Provider store={store}>
-      {/* Configure the main navigation stack */}
-      <Stack screenOptions={{ headerShown: false }} />
+      {/* Render child routes (layouts/screens) */}
+      <Slot />
     </Provider>
   );
 }
