@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
-// import workoutRouter from './routes/workout.route.js'; // You will create this later!
+import workoutRouter from './routes/workout.route.js';
 
 dotenv.config();
 
@@ -27,7 +27,7 @@ app.use(cookieParser());
 // 3. Routes
 app.use('/api/user', userRouter);
 app.use('/api/auth', authRouter);
-// app.use('/api/workout', workoutRouter); 
+app.use('/api/workout', workoutRouter); 
 
 // 4. Global Error Handler
 app.use((err, req, res, next) => {
