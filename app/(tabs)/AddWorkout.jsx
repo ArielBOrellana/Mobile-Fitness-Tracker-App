@@ -5,12 +5,6 @@ import { Feather } from '@expo/vector-icons';
 // Mapping lucide-react-like names to Feather icons for usage consistency.
 // Each entry is a small component wrapper so we can use <Icons.X size={} color={} />
 const Icons = {
-  Home: (props) => <Feather name="home" {...props} />,
-  Plus: (props) => <Feather name="plus" {...props} />,
-  BarChart3: (props) => <Feather name="bar-chart" {...props} />,
-  Search: (props) => <Feather name="search" {...props} />,
-  Settings: (props) => <Feather name="settings" {...props} />,
-  ArrowLeft: (props) => <Feather name="arrow-left" {...props} />,
   Clock: (props) => <Feather name="clock" {...props} />,
 };
 
@@ -44,14 +38,6 @@ export default function AddWorkout() {
     { label: 'Intense', selected: false }
   ];
 
-  const bottomNavItems = [
-    { icon: Icons.Home, label: 'Home', active: false },
-    { icon: Icons.Plus, label: 'Add', active: true },
-    { icon: Icons.BarChart3, label: 'Analytics', active: false },
-    { icon: Icons.Search, label: 'Search', active: false },
-    { icon: Icons.Settings, label: 'Settings', active: false }
-  ];
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -61,9 +47,6 @@ export default function AddWorkout() {
         
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <Icons.ArrowLeft size={20} color="#4B5563" />
-          </TouchableOpacity>
           <Text style={styles.headerTitle}>Add Workout</Text>
         </View>
 
@@ -185,13 +168,6 @@ export default function AddWorkout() {
   );
 }
 
-// Tab options for expo-router tab bar (file-system routing)
-export const options = {
-  title: 'Add Workout',
-  tabBarLabel: 'Add',
-  tabBarIcon: ({ color }) => <Feather name="plus" size={22} color={color} />,
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -199,7 +175,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16, // p-4
-    paddingTop: 8, // pt-2 (combined with header padding)
+    paddingTop: 48, // increased for consistent header spacing
     paddingBottom: 64, // Extra padding for content above bottom nav
   },
   
@@ -208,7 +184,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24, // space-y-6 roughly
-    paddingTop: 8, // pt-2
+    paddingTop: 0,
   },
   backButton: {
     width: 40,
@@ -222,7 +198,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24, // text-2xl
     fontWeight: '600', // font-semibold
-    color: '#1F2937', // text-gray-900
+    color: '#111827', // text-gray-900
   },
 
   // --- Cards/Sections ---

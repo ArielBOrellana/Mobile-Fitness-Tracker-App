@@ -239,13 +239,6 @@ export default function Home() {
   );
 }
 
-// Tab options for expo-router tab bar (file-system routing)
-export const options = {
-  title: 'Home',
-  tabBarLabel: 'Home',
-  tabBarIcon: ({ color }) => <Feather name="home" size={24} color={color} />,
-};
-
 const styles = StyleSheet.create({
   // Global Layout
   appContainer: {
@@ -254,7 +247,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16, // p-4
-    paddingTop: 32, // pt-8 for better iPhone notch clearance
+    paddingTop: 48, // increased for consistent header spacing
     paddingBottom: 24,
     gap: 24, // space-y-6
   },
@@ -269,7 +262,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24, // text-2xl
     fontWeight: '600', // font-semibold
-    color: '#1F2937', // text-gray-900
+    color: '#111827', // text-gray-900
   },
   subtitle: {
     color: '#4B5563', // text-gray-600

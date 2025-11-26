@@ -205,13 +205,6 @@ export default function Profile() {
   );
 }
 
-// Tab options for expo-router tab bar (file-system routing)
-export const options = {
-  title: 'Profile',
-  tabBarLabel: 'Profile',
-  tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
-};
-
 // --- Component Styles ---
 const styles = StyleSheet.create({
   screen: {
@@ -220,6 +213,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
+    paddingTop: 48,
     paddingBottom: 96,
     gap: 24,
   },
@@ -238,10 +232,9 @@ const styles = StyleSheet.create({
 
   // Header Styles
   headerText: {
-    fontSize: 28,
-    fontWeight: '800', // font-extrabold
+    fontSize: 24, // text-2xl
+    fontWeight: '600', // font-semibold
     color: '#111827', // text-gray-900
-    paddingTop: 25
   },
   sectionTitleContainer: {
     flexDirection: 'row',
