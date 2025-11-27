@@ -33,8 +33,6 @@ export default function SignIn() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  // (Debug function removed)
-
   const handleChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
