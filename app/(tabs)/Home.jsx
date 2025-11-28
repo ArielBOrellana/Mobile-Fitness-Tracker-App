@@ -6,19 +6,12 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
-import {
-  Home as HomeIcon,
-  Plus,
-  BarChart3,
-  Search,
-  Settings,
-  Flame,
-  TrendingUp,
-  Calendar,
-} from 'lucide-react-native';
 import { useSelector } from 'react-redux';
-import { current } from '@reduxjs/toolkit';
+import { router, useFocusEffect } from 'expo-router';
+import { useState, useEffect, useCallback } from 'react';
+import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
@@ -58,15 +51,100 @@ const Progress = ({ value, style, barStyle }) => {
 export default function Home() {
 
   const { currentUser } = useSelector((state) => state.user)
+  const [workoutsThisMonth, setWorkoutsThisMonth] = useState(0);
+  const [workoutsByType, setWorkoutsByType] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for the Workouts by Type chart
-  const workoutCategories = [
-    { name: 'Strength', count: 6, color: '#F59E0B', percent: '33%' }, // amber-500
-    { name: 'Running', count: 5, color: '#3B82F6', percent: '28%' }, // blue-500
-    { name: 'Yoga', count: 3, color: '#10B981', percent: '17%' }, // emerald-500
-    { name: 'Stretching', count: 2, color: '#8B5CF6', percent: '11%' }, // violet-500
-    { name: 'Sports', count: 2, color: '#EC4899', percent: '11%' }, // pink-500
-  ];
+  const API_URL =
+    process.env.EXPO_PUBLIC_API_URL ||
+    Constants.expoConfig?.extra?.apiUrl ||
+    Constants.manifest?.extra?.apiUrl ||
+    "http://192.168.1.13:3000";
+
+  // Calculate days remaining in current month
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const currentDay = now.getDate();
+  const daysLeftInMonth = lastDayOfMonth - currentDay;
+
+  // Calculate workout statistics
+  const monthlyGoal = currentUser.monthlyGoal || 20;
+  const daysWorkedOut = workoutsThisMonth;
+  const remainingDays = Math.max(0, monthlyGoal - daysWorkedOut);
+  const progressPercentage = Math.min(100, Math.round((daysWorkedOut / monthlyGoal) * 100));
+
+  // Fetch workouts for current month - refetches when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchMonthlyWorkouts = async () => {
+        try {
+          setLoading(true);
+          const startOfMonth = new Date(currentYear, currentMonth, 1).toISOString();
+          const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59).toISOString();
+          
+          const response = await fetch(
+            `${API_URL}/api/workout?startDate=${startOfMonth}&endDate=${endOfMonth}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${currentUser.token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            // Count unique days with workouts
+            const uniqueDays = new Set(
+              data.workouts.map(workout => 
+                new Date(workout.date).toDateString()
+              )
+            );
+            setWorkoutsThisMonth(uniqueDays.size);
+
+            // Calculate workouts by type
+            const typeColors = {
+              'Strength': '#F59E0B',    // amber-500
+              'Running': '#3B82F6',     // blue-500
+              'Swimming': '#10B981',    // emerald-500
+              'Stretching': '#8B5CF6',  // violet-500
+              'Sports': '#EC4899',      // pink-500
+              'Cycling': '#14B8A6',     // teal-500
+            };
+
+            const typeCounts = {};
+            data.workouts.forEach(workout => {
+              const type = workout.type;
+              typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            const totalWorkouts = data.workouts.length;
+            const typeStats = Object.entries(typeCounts)
+              .map(([name, count]) => ({
+                name,
+                count,
+                color: typeColors[name] || '#6B7280',
+                percent: totalWorkouts > 0 ? `${Math.round((count / totalWorkouts) * 100)}%` : '0%'
+              }))
+              .sort((a, b) => b.count - a.count); // Sort by count descending
+
+            setWorkoutsByType(typeStats);
+          }
+        } catch (error) {
+          console.error('Error fetching monthly workouts:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchMonthlyWorkouts();
+    }, [currentYear, currentMonth, currentUser.token])
+  );
+
+  // Get current month name
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const currentMonthName = `${monthNames[currentMonth]} ${currentYear}`;
   
   // Mock data for Recent Workouts
   const recentWorkouts = [
@@ -85,8 +163,11 @@ export default function Home() {
             <Text style={styles.title}>{`Hello, ${currentUser.username}! 💪`}</Text>
             <Text style={styles.subtitle}>Keep crushing your goals!</Text>
           </View>
-          <TouchableOpacity style={styles.addButton}>
-            <Plus size={24} color="#FFFFFF" />
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => router.push('/AddWorkout')}
+          >
+            <Feather name="plus" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -95,25 +176,25 @@ export default function Home() {
           <View style={styles.summaryContent}>
             <View>
               <Text style={styles.summaryLabel}>Days Worked Out</Text>
-              <Text style={styles.summaryValue}>18/25</Text>
+              <Text style={styles.summaryValue}>{loading ? '...' : `${daysWorkedOut}/${monthlyGoal}`}</Text>
             </View>
-            <View style={styles.summaryIconBox}>
-              <Flame size={32} color="#FFFFFF" />
+            <View style={[styles.summaryIconBox, daysWorkedOut >= monthlyGoal && styles.summaryIconBoxComplete]}>
+              <Feather name="zap" size={32} color={daysWorkedOut >= monthlyGoal ? "#FCD34D" : "#FFFFFF"} />
             </View>
           </View>
           <View style={styles.progressSection}>
             <View style={styles.progressTextRow}>
-              <Text style={styles.progressText}>{`Goal: ${currentUser.monthlyGoal}`}</Text>
-              <Text style={styles.progressText}>Remaining: 7 days</Text>
+              <Text style={styles.progressText}>{`Goal: ${monthlyGoal} days`}</Text>
+              <Text style={styles.progressText}>{`Remaining: ${remainingDays} days`}</Text>
             </View>
             <Progress 
-              value={72} 
+              value={progressPercentage} 
               style={styles.progressBg}
               barStyle={styles.progressBarFill}
             />
             <View style={styles.progressTextRowSmall}>
-              <Text style={styles.progressTextSmall}>72% complete</Text>
-              <Text style={styles.progressTextSmall}>9 days left in month</Text>
+              <Text style={styles.progressTextSmall}>{`${progressPercentage}% complete`}</Text>
+              <Text style={styles.progressTextSmall}>{`${daysLeftInMonth} days left in month`}</Text>
             </View>
           </View>
         </Card>
@@ -122,21 +203,61 @@ export default function Home() {
         <Card style={styles.defaultCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Workouts by Type</Text>
-            <Badge variant="secondary">January 2025</Badge>
+            <Badge variant="secondary">{currentMonthName}</Badge>
           </View>
           
+          {workoutsByType.length > 0 ? (
           <View style={styles.chartSection}>
-            {/* Pie Chart Mockup (using View components) */}
+            {/* Progress Ring Chart */}
             <View style={styles.chartMockup}>
-              {/* This is a simple visual ring placeholder instead of complex SVG */}
-              <View style={styles.chartRingOuter}>
-                 <View style={styles.chartRingInner} />
-              </View>
+              {(() => {
+                const size = width * 0.35;
+                const strokeWidth = 20;
+                const radius = (size - strokeWidth) / 2;
+                const circumference = 2 * Math.PI * radius;
+                
+                let currentOffset = 0;
+                
+                return (
+                  <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
+                    {/* Background circle */}
+                    <Circle
+                      cx={size / 2}
+                      cy={size / 2}
+                      r={radius}
+                      stroke="#F3F4F6"
+                      strokeWidth={strokeWidth}
+                      fill="none"
+                    />
+                    {/* Workout type segments */}
+                    {workoutsByType.map((category, index) => {
+                      const percentage = parseFloat(category.percent) / 100;
+                      const segmentLength = circumference * percentage;
+                      const segment = (
+                        <Circle
+                          key={category.name}
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          stroke={category.color}
+                          strokeWidth={strokeWidth}
+                          fill="none"
+                          strokeDasharray={`${segmentLength} ${circumference}`}
+                          strokeDashoffset={-currentOffset}
+                          strokeLinecap="butt"
+                        />
+                      );
+                      currentOffset += segmentLength;
+                      return segment;
+                    })}
+                  </Svg>
+                );
+              })()}
             </View>
             
             {/* Legend */}
             <View style={styles.legendContainer}>
-              {workoutCategories.map((category) => (
+              {workoutsByType.map((category) => (
                 <View key={category.name} style={styles.legendRow}>
                   <View style={styles.legendItemLeft}>
                     <View style={[styles.legendColorDot, { backgroundColor: category.color }]} />
@@ -150,6 +271,12 @@ export default function Home() {
               ))}
             </View>
           </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No workouts this month yet</Text>
+              <Text style={styles.emptyStateSubtext}>Start tracking your fitness journey!</Text>
+            </View>
+          )}
         </Card>
 
         {/* Recent Workouts */}
@@ -187,7 +314,7 @@ export default function Home() {
           <Card style={styles.quickStatCard}>
             <View style={styles.quickStatContent}>
               <View style={styles.streakIconBg}>
-                <Flame size={20} color="#EA580C" /> 
+                <Feather name="zap" size={20} color="#EA580C" /> 
               </View>
               <Text style={styles.quickStatLabel}>Current Streak</Text>
               <Text style={styles.quickStatValueOrange}>5 days</Text>
@@ -196,45 +323,15 @@ export default function Home() {
           <Card style={styles.quickStatCard}>
             <View style={styles.quickStatContent}>
               <View style={styles.trendIconBg}>
-                <TrendingUp size={20} color="#10B981" /> 
+                <Feather name="trending-up" size={20} color="#10B981" /> 
               </View>
               <Text style={styles.quickStatLabel}>vs Last Month</Text>
               <Text style={styles.quickStatValueGreen}>+22%</Text>
             </View>
           </Card>
         </View>
-        
-        {/* Extra margin for space above the bottom tab bar, handled by Expo Router tabs */}
-        <View style={{ height: 16 }} />
       </ScrollView>
 
-      {/* Note: The bottom navigation bar is typically handled by Expo Router's (tabs) layout, 
-          so this code block is commented out to avoid conflict, but the styles are kept 
-          if you need a custom nav. 
-      */}
-      {/* <View style={styles.bottomNav}>
-        {[
-          { icon: Home, label: 'Home', active: true, screen: 'Home' },
-          { icon: Plus, label: 'Add', screen: 'Add' },
-          { icon: BarChart3, label: 'Analytics', screen: 'Analytics' },
-          { icon: Search, label: 'Search', screen: 'Search' },
-          { icon: Settings, label: 'Settings', screen: 'Settings' }
-        ].map((item, index) => (
-          <TouchableOpacity 
-            key={index} 
-            style={[
-              styles.navItem, 
-              item.active ? styles.navItemActive : styles.navItemInactive
-            ]}
-          >
-            <item.icon size={24} color={item.active ? '#4F46E5' : '#6B7280'} />
-            <Text style={[styles.navText, item.active ? styles.navTextActive : styles.navTextInactive]}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View> 
-      */}
     </View>
   );
 }
@@ -345,6 +442,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)', // bg-white/10
     borderRadius: 16, // rounded-2xl
   },
+  summaryIconBoxComplete: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // white with transparency
+  },
 
   // Progress Section
   progressSection: {
@@ -407,27 +507,10 @@ const styles = StyleSheet.create({
     gap: 16, // gap-4
   },
   chartMockup: {
-    width: width * 0.35, // Approx 32x32 based on phone width
+    width: width * 0.35,
     height: width * 0.35,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  chartRingOuter: {
-    width: '90%',
-    height: '90%',
-    borderRadius: 999,
-    backgroundColor: '#F3F4F6', // light gray background
-    borderWidth: 10,
-    borderColor: '#4F46E5', // Indigo color for simple fill
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
-  },
-  chartRingInner: {
-    width: '50%',
-    height: '50%',
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
   },
   
   legendContainer: {
@@ -578,41 +661,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#10B981', // text-green-600
   },
-  
-  // Bottom Navigation (Styles kept for reference if you implement a custom bar)
-  bottomNav: {
-    height: 80, // h-20
-    backgroundColor: '#FFFFFF', // bg-white
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB', // border-gray-200
-    flexDirection: 'row',
+  emptyState: {
+    paddingVertical: 32, // py-8
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16, // px-4
   },
-  navItem: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 4, // gap-1
-    paddingVertical: 8, // py-2
-    paddingHorizontal: 12, // px-3
-    borderRadius: 8, // rounded-lg
-  },
-  navItemActive: {
-    backgroundColor: '#EEF2FF', // bg-indigo-50
-    color: '#4F46E5', // text-indigo-600
-  },
-  navItemInactive: {
-    color: '#6B7280', // text-gray-500
-  },
-  navText: {
-    fontSize: 12, // text-xs
+  emptyStateText: {
+    fontSize: 14, // text-sm
     fontWeight: '500', // font-medium
+    color: '#6B7280', // text-gray-500
+    marginBottom: 4,
   },
-  navTextActive: {
-    color: '#4F46E5',
-  },
-  navTextInactive: {
-    color: '#6B7280',
+  emptyStateSubtext: {
+    fontSize: 12, // text-xs
+    color: '#9CA3AF', // text-gray-400
   },
 });

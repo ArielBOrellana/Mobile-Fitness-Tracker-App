@@ -92,8 +92,14 @@ export default function Profile() {
       }
 
       const updated = await res.json();
-      // Keep token in store
-      const payload = { ...updated, token: currentUser.token };
+      // Update only the necessary user fields and keep token
+      const payload = {
+        _id: currentUser._id,
+        username: currentUser.username,
+        email: currentUser.email,
+        monthlyGoal: updated.monthlyGoal,
+        token: currentUser.token,
+      };
       dispatch(signInSuccess(payload));
       Alert.alert('Saved', 'Monthly goal updated');
     } catch (err) {

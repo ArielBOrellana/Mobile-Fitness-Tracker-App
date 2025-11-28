@@ -109,23 +109,15 @@ export default function AddWorkout() {
   };
 
   const openTimePicker = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
+    // Use the existing time from formData if valid, otherwise use current time
+    let timeToUse;
     if (formData.time instanceof Date && !isNaN(formData.time.getTime())) {
-      today.setHours(formData.time.getHours());
-      today.setMinutes(formData.time.getMinutes());
-      today.setSeconds(0);
-      today.setMilliseconds(0);
+      timeToUse = new Date(formData.time.getTime());
     } else {
-      const now = new Date();
-      today.setHours(now.getHours());
-      today.setMinutes(now.getMinutes());
-      today.setSeconds(0);
-      today.setMilliseconds(0);
+      timeToUse = new Date();
     }
     
-    setTempTime(today);
+    setTempTime(timeToUse);
     setTimePickerKey(prev => prev + 1);
     setShowTimePicker(true);
   };
