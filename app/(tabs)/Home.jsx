@@ -53,6 +53,9 @@ export default function Home() {
   const { currentUser } = useSelector((state) => state.user)
   const [workoutsThisMonth, setWorkoutsThisMonth] = useState(0);
   const [workoutsByType, setWorkoutsByType] = useState([]);
+  const [recentWorkouts, setRecentWorkouts] = useState([]);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [lastMonthComparison, setLastMonthComparison] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const API_URL =
@@ -101,7 +104,8 @@ export default function Home() {
                 new Date(workout.date).toDateString()
               )
             );
-            setWorkoutsThisMonth(uniqueDays.size);
+            const thisMonthUniqueDays = uniqueDays.size;
+            setWorkoutsThisMonth(thisMonthUniqueDays);
 
             // Calculate workouts by type
             const typeColors = {
@@ -130,29 +134,123 @@ export default function Home() {
               .sort((a, b) => b.count - a.count); // Sort by count descending
 
             setWorkoutsByType(typeStats);
-          }
-        } catch (error) {
-          console.error('Error fetching monthly workouts:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
 
-      fetchMonthlyWorkouts();
+            // Calculate current streak
+            const allWorkoutsResponse = await fetch(
+              `${API_URL}/api/workout`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${currentUser.token}`,
+                },
+              }
+            );
+
+            if (allWorkoutsResponse.ok) {
+              const allData = await allWorkoutsResponse.json();
+              
+              // Get unique workout dates sorted descending
+              const uniqueDates = [...new Set(
+                allData.workouts.map(w => new Date(w.date).toDateString())
+              )].map(dateStr => new Date(dateStr)).sort((a, b) => b - a);
+
+              // Calculate current streak
+              let streak = 0;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              for (let i = 0; i < uniqueDates.length; i++) {
+                const workoutDate = new Date(uniqueDates[i]);
+                workoutDate.setHours(0, 0, 0, 0);
+                
+                const expectedDate = new Date(today);
+                expectedDate.setDate(today.getDate() - i);
+                expectedDate.setHours(0, 0, 0, 0);
+                
+                if (workoutDate.getTime() === expectedDate.getTime()) {
+                  streak++;
+                } else {
+                  break;
+                }
+              }
+              setCurrentStreak(streak);
+
+              // Calculate vs last month
+              const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+              const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+              
+              const lastMonthWorkouts = allData.workouts.filter(w => {
+                const workoutDate = new Date(w.date);
+                return workoutDate.getMonth() === lastMonth && workoutDate.getFullYear() === lastMonthYear;
+              });
+              
+              const lastMonthUniqueDays = new Set(
+                lastMonthWorkouts.map(w => new Date(w.date).toDateString())
+              ).size;
+              
+              const percentChange = lastMonthUniqueDays > 0 
+                ? Math.round(((thisMonthUniqueDays - lastMonthUniqueDays) / lastMonthUniqueDays) * 100)
+                : (thisMonthUniqueDays > 0 ? 100 : 0);
+              
+              setLastMonthComparison(percentChange);
+
+              // Get recent workouts (max 4, sorted by date descending)
+              const sortedWorkouts = [...allData.workouts]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 4);
+              
+              const workoutIcons = {
+                'Strength': '🏋️',
+                'Running': '🏃',
+                'Swimming': '🏊‍♂️',
+                'Stretching': '🤸',
+                'Sports': '⚽',
+                'Cycling': '🚴'
+              };
+
+              const formattedWorkouts = sortedWorkouts.map(workout => {
+                const workoutDate = new Date(workout.date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                
+                let dateLabel;
+                const workoutDateOnly = new Date(workoutDate);
+                workoutDateOnly.setHours(0, 0, 0, 0);
+                
+                if (workoutDateOnly.getTime() === today.getTime()) {
+                  dateLabel = 'Today';
+                } else if (workoutDateOnly.getTime() === yesterday.getTime()) {
+                  dateLabel = 'Yesterday';
+                } else {
+                  dateLabel = workoutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+
+                return {
+                  id: workout._id,
+                  icon: workoutIcons[workout.type] || '💪',
+                  name: workout.name,
+                  category: workout.type,
+                  duration: `${workout.duration} min`,
+                  date: dateLabel
+                };
+              });
+
+              setRecentWorkouts(formattedWorkouts);
+            }
+          }
+      } catch (error) {
+        console.error('Error fetching monthly workouts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };      fetchMonthlyWorkouts();
     }, [currentYear, currentMonth, currentUser.token])
   );
 
   // Get current month name
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const currentMonthName = `${monthNames[currentMonth]} ${currentYear}`;
-  
-  // Mock data for Recent Workouts
-  const recentWorkouts = [
-    { icon: '🏋️', name: 'Upper Body Strength', category: 'Strength', duration: '45 min', date: 'Today' },
-    { icon: '🏃', name: 'Morning Run', category: 'Running', duration: '30 min', date: 'Today' },
-    { icon: '🧘', name: 'Evening Yoga', category: 'Yoga', duration: '60 min', date: 'Yesterday' },
-    { icon: '🤸', name: 'Full Body Stretch', category: 'Stretching', duration: '20 min', date: 'Yesterday' }
-  ];
 
   return (
     <View style={styles.appContainer}>
@@ -283,14 +381,17 @@ export default function Home() {
         <Card style={styles.defaultCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Recent Workouts</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
+            {recentWorkouts.length > 0 && (
+              <TouchableOpacity onPress={() => router.push('/Search')}>
+                <Text style={styles.viewAllText}>View All</Text>
+              </TouchableOpacity>
+            )}
           </View>
           
+          {recentWorkouts.length > 0 ? (
           <View style={styles.recentWorkoutsList}>
-            {recentWorkouts.map((workout, index) => (
-              <View key={index} style={styles.workoutRow}>
+            {recentWorkouts.map((workout) => (
+              <View key={workout.id} style={styles.workoutRow}>
                 <View style={styles.workoutIconBox}>
                   <Text style={styles.workoutIcon}>{workout.icon}</Text>
                 </View>
@@ -307,6 +408,12 @@ export default function Home() {
               </View>
             ))}
           </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No workouts yet</Text>
+              <Text style={styles.emptyStateSubtext}>Add your first workout to get started!</Text>
+            </View>
+          )}
         </Card>
 
         {/* Quick Stats */}
@@ -317,16 +424,24 @@ export default function Home() {
                 <Feather name="zap" size={20} color="#EA580C" /> 
               </View>
               <Text style={styles.quickStatLabel}>Current Streak</Text>
-              <Text style={styles.quickStatValueOrange}>5 days</Text>
+              <Text style={styles.quickStatValueOrange}>
+                {loading ? '...' : `${currentStreak} day${currentStreak !== 1 ? 's' : ''}`}
+              </Text>
             </View>
           </Card>
           <Card style={styles.quickStatCard}>
             <View style={styles.quickStatContent}>
-              <View style={styles.trendIconBg}>
-                <Feather name="trending-up" size={20} color="#10B981" /> 
+              <View style={[styles.trendIconBg, lastMonthComparison < 0 && styles.trendIconBgRed]}>
+                <Feather 
+                  name={lastMonthComparison < 0 ? "trending-down" : "trending-up"} 
+                  size={20} 
+                  color={lastMonthComparison < 0 ? "#DC2626" : "#10B981"} 
+                /> 
               </View>
               <Text style={styles.quickStatLabel}>vs Last Month</Text>
-              <Text style={styles.quickStatValueGreen}>+22%</Text>
+              <Text style={[lastMonthComparison < 0 ? styles.quickStatValueRed : styles.quickStatValueGreen]}>
+                {loading ? '...' : `${lastMonthComparison > 0 ? '+' : ''}${lastMonthComparison}%`}
+              </Text>
             </View>
           </Card>
         </View>
@@ -648,6 +763,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  trendIconBgRed: {
+    backgroundColor: '#FEE2E2', // red-100
+  },
   quickStatLabel: {
     fontSize: 12, // text-xs
     color: '#6B7280', // text-gray-500
@@ -660,6 +778,10 @@ const styles = StyleSheet.create({
   quickStatValueGreen: {
     fontWeight: '600',
     color: '#10B981', // text-green-600
+  },
+  quickStatValueRed: {
+    fontWeight: '600',
+    color: '#DC2626', // text-red-600
   },
   emptyState: {
     paddingVertical: 32, // py-8

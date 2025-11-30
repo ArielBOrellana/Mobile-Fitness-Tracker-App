@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 // Mapping lucide-react-like names to Feather icons for usage consistency.
 // Each entry is a small component wrapper so we can use <Icons.X size={} color={} />
@@ -68,6 +68,22 @@ export default function AddWorkout() {
   ];
 
   const intensityLevels = ['Light', 'Moderate', 'Intense'];
+
+  // Reset form when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setFormData({
+        type: 'Strength',
+        name: '',
+        duration: 30,
+        date: new Date(),
+        time: new Date(),
+        intensity: 'Moderate',
+        notes: ''
+      });
+      setTimePickerKey(prev => prev + 1);
+    }, [])
+  );
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({
