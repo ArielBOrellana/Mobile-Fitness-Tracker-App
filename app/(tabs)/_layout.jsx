@@ -45,10 +45,22 @@ export default function Layout() {
           <Text style={{ fontSize: 12, color: iconColor('home') }}>Home</Text>
         </TabTrigger>
 
+        <TabTrigger name="Analytics" href="/(tabs)/Analytics" style={tabStyle('analytics')}>
+          <Feather name="bar-chart-2" size={24} color={iconColor('analytics')} />
+          <View style={{ height: 4 }} />
+          <Text style={{ fontSize: 12, color: iconColor('analytics') }}>Analytics</Text>
+        </TabTrigger>
+
         <TabTrigger name="AddWorkout" href="/(tabs)/AddWorkout" style={tabStyle('addworkout')}>
           <Feather name="plus" size={24} color={iconColor('addworkout')} />
           <View style={{ height: 4 }} />
           <Text style={{ fontSize: 12, color: iconColor('addworkout') }}>Add</Text>
+        </TabTrigger>
+
+        <TabTrigger name="Search" href="/(tabs)/Search" style={tabStyle('search')}>
+          <Feather name="search" size={24} color={iconColor('search')} />
+          <View style={{ height: 4 }} />
+          <Text style={{ fontSize: 12, color: iconColor('search') }}>Search</Text>
         </TabTrigger>
 
         <TabTrigger name="Profile" href="/(tabs)/Profile" style={tabStyle('profile')}>

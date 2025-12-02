@@ -118,8 +118,10 @@ export default function Profile() {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         
         {/* Header */}
-        <View>
-          <Text style={styles.headerText}>Profile & Settings</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerText}>Profile & Settings</Text>
+          </View>
         </View>
 
         {/* Profile Section */}
@@ -237,10 +239,17 @@ const styles = StyleSheet.create({
   },
 
   // Header Styles
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    marginBottom: 8,
+  },
   headerText: {
-    fontSize: 24, // text-2xl
-    fontWeight: '600', // font-semibold
-    color: '#111827', // text-gray-900
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
   },
   sectionTitleContainer: {
     flexDirection: 'row',

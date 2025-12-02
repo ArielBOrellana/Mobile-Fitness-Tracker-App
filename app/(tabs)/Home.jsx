@@ -469,12 +469,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8, // pt-2
+    paddingTop: 8,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 24, // text-2xl
-    fontWeight: '600', // font-semibold
-    color: '#111827', // text-gray-900
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
   },
   subtitle: {
     color: '#4B5563', // text-gray-600

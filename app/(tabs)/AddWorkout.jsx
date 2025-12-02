@@ -568,8 +568,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24, // space-y-6 roughly
-    paddingTop: 0,
+    paddingTop: 8,
+    marginBottom: 8,
   },
   backButton: {
     width: 40,
@@ -581,9 +581,9 @@ const styles = StyleSheet.create({
     marginRight: 16, // gap-4
   },
   headerTitle: {
-    fontSize: 24, // text-2xl
-    fontWeight: '600', // font-semibold
-    color: '#111827', // text-gray-900
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
   },
 
   // --- Cards/Sections ---
