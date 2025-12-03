@@ -73,7 +73,7 @@ export default function Home() {
   const daysLeftInMonth = lastDayOfMonth - currentDay;
 
   // Calculate workout statistics
-  const monthlyGoal = currentUser.monthlyGoal || 20;
+  const monthlyGoal = currentUser?.monthlyGoal || 20;
   const daysWorkedOut = workoutsThisMonth;
   const remainingDays = Math.max(0, monthlyGoal - daysWorkedOut);
   const progressPercentage = Math.min(100, Math.round((daysWorkedOut / monthlyGoal) * 100));
@@ -91,7 +91,7 @@ export default function Home() {
             `${API_URL}/api/workout?startDate=${startOfMonth}&endDate=${endOfMonth}`,
             {
               headers: {
-                'Authorization': `Bearer ${currentUser.token}`,
+                  'Authorization': `Bearer ${currentUser?.token}`,
               },
             }
           );
@@ -245,7 +245,7 @@ export default function Home() {
         setLoading(false);
       }
     };      fetchMonthlyWorkouts();
-    }, [currentYear, currentMonth, currentUser.token])
+    }, [currentYear, currentMonth, currentUser?.token])
   );
 
   // Get current month name
@@ -258,7 +258,7 @@ export default function Home() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>{`Hello, ${currentUser.username}! 💪`}</Text>
+            <Text style={styles.title}>{`Hello, ${currentUser?.username || 'User'}! 💪`}</Text>
             <Text style={styles.subtitle}>Keep crushing your goals!</Text>
           </View>
           <TouchableOpacity 

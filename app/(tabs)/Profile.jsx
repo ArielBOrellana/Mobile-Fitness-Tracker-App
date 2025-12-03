@@ -5,53 +5,17 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { MaterialIcons, Feather } from 'expo-vector-icons';
+import { MaterialIcons } from 'expo-vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { Alert, TextInput } from 'react-native';
 import Constants from 'expo-constants';
-import { signInSuccess } from '../../redux/user/userSlice';
-
-// --- Utility Components (React Native) ---
-
-const IconWrapper = ({ children }) => (
-  <View style={{ padding: 8, backgroundColor: 'white', borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB', elevation: 1, shadowOpacity: 0.05, shadowRadius: 2 }}>
-    {children}
-  </View>
-);
-
-// Toggle component (React Native Switch Mockup)
-const ToggleSwitch = ({ enabled }) => (
-  <View style={{
-    width: 48,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: enabled ? '#4F46E5' : '#D1D5DB',
-    justifyContent: 'center',
-  }}>
-    <View style={{
-      width: 20,
-      height: 20,
-      backgroundColor: 'white',
-      borderRadius: 10,
-      position: 'absolute',
-      left: enabled ? 26 : 2,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.5,
-      elevation: 2,
-    }} />
-  </View>
-);
+import { signInSuccess, signOutUserSuccess } from '../../redux/user/userSlice';
+import { router } from 'expo-router';
 
 // --- Main Profile/Settings Component (React Native) ---
 
 export default function Profile() {
-  const preferences = [
-    { icon: 'notifications', title: 'Push Notifications', description: 'Get reminded to workout', enabled: false },
-    { icon: 'track-changes', title: 'Goal Alerts', description: 'Alert when reaching milestones', enabled: true }
-  ];
 
   const { currentUser } = useSelector((state) => state.user)
   const dispatch = useDispatch();
@@ -181,31 +145,84 @@ export default function Profile() {
             </View>
         </View>
 
-
-        {/* App Preferences 
-            Make this interactive later
-        */}
+        {/* Account Actions */}
         <View style={styles.card}>
             <View style={styles.sectionTitleContainer}>
-              <MaterialIcons name="settings" size={20} color="#4B5563" />
-              <Text style={styles.sectionTitle}>App Preferences</Text>
+              <MaterialIcons name="security" size={20} color="#4B5563" />
+              <Text style={styles.sectionTitle}>Account</Text>
             </View>
             
-            <View style={{ gap: 16 }}>
-              {preferences.map((pref, index) => (
-                <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: '#F9FAFB', borderRadius: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    <IconWrapper>
-                      <MaterialIcons name={pref.icon} size={20} color="#4B5563" />
-                    </IconWrapper>
-                    <View>
-                      <Text style={{ fontWeight: '600', color: '#111827' }}>{pref.title}</Text>
-                      <Text style={{ fontSize: 12, color: '#6B7280' }}>{pref.description}</Text>
-                    </View>
-                  </View>
-                  <ToggleSwitch enabled={pref.enabled} />
+            <View style={{ gap: 12 }}>
+              {/* Sign Out Button */}
+              <TouchableOpacity 
+                style={styles.signOutButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Sign Out',
+                    'Are you sure you want to sign out?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { 
+                        text: 'Sign Out', 
+                        style: 'destructive',
+                        onPress: () => {
+                          dispatch(signOutUserSuccess());
+                          router.replace('/(auth)/SignIn');
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <View style={styles.buttonContent}>
+                  <MaterialIcons name="exit-to-app" size={20} color="#4F46E5" />
+                  <Text style={styles.signOutButtonText}>Sign Out</Text>
                 </View>
-              ))}
+              </TouchableOpacity>
+
+              {/* Delete Account Button */}
+              <TouchableOpacity 
+                style={styles.deleteButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Delete Account',
+                    'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { 
+                        text: 'Delete', 
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/api/user/delete/${currentUser._id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                Authorization: currentUser?.token ? `Bearer ${currentUser.token}` : undefined,
+                              },
+                            });
+                            
+                            if (!res.ok) {
+                              throw new Error('Failed to delete account');
+                            }
+                            
+                            dispatch(signOutUserSuccess());
+                            router.replace('/(auth)/SignIn');
+                            Alert.alert('Success', 'Your account has been deleted');
+                          } catch (err) {
+                            console.error('Delete error', err);
+                            Alert.alert('Error', 'Could not delete account');
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <View style={styles.buttonContent}>
+                  <MaterialIcons name="delete" size={20} color="#DC2626" />
+                  <Text style={styles.deleteButtonText}>Delete Account</Text>
+                </View>
+              </TouchableOpacity>
             </View>
         </View>
       </ScrollView>
@@ -308,5 +325,35 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#4F46E5',
     marginLeft: 4,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  signOutButton: {
+    padding: 16,
+    backgroundColor: '#EEF2FF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  signOutButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4F46E5',
+  },
+  deleteButton: {
+    padding: 16,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#DC2626',
   },
 });

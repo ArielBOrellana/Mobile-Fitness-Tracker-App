@@ -102,28 +102,6 @@ export default function SignIn() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* --- DEBUG BUTTON (Remove later) --- */}
-        <View
-          style={{
-            marginBottom: 20,
-            backgroundColor: "#fff",
-            padding: 10,
-            borderRadius: 8,
-          }}
-        >
-          <Text
-            style={{ textAlign: "center", fontWeight: "bold", marginBottom: 5 }}
-          >
-            Debug Tools
-          </Text>
-          {/* Displaying the hardcoded URL for verification */}
-          <Text style={{ textAlign: "center", fontSize: 12, marginBottom: 5 }}>
-            Current URL: {API_URL}
-          </Text>
-          <Button title="Run Connection Test" onPress={runConnectionTests} />
-        </View>
-        {/* ----------------------------------- */}
-
         <View style={styles.logoContainer}>
           <View style={styles.logoBox}>
             <Text style={styles.logoEmoji}>💪</Text>
