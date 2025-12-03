@@ -11,7 +11,7 @@ export default function Index() {
   
   if (currentUser) {
     return <Redirect href="/(tabs)/Home" />;
-  } else {
-    return <Redirect href="/(auth)/SignIn" />;
   }
+  
+  return <Redirect href="/(auth)/SignIn" />;
 }

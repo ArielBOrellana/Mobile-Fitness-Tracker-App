@@ -14,12 +14,13 @@ import Constants from 'expo-constants';
 
 export default function SearchFilter() {
   const { currentUser } = useSelector((state) => state.user);
+  // Search and filter state
   const [searchText, setSearchText] = useState('');
   const [allWorkouts, setAllWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expandedWorkouts, setExpandedWorkouts] = useState({});
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [expandedWorkouts, setExpandedWorkouts] = useState({});  // Track expanded workout details
+  const [activeFilters, setActiveFilters] = useState([]);         // Active quick filters
+  const [selectedMonth, setSelectedMonth] = useState(null);       // Selected month filter
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const inputRef = useRef(null);
   const API_URL =
@@ -37,7 +38,7 @@ export default function SearchFilter() {
     'Cycling': '🚴'
   };
 
-  // Fetch all workouts on mount
+  // Load all workouts on component mount
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
@@ -53,6 +54,7 @@ export default function SearchFilter() {
 
           if (response.ok) {
             const data = await response.json();
+            // Format workouts with date/time strings and sort by date descending
             const formattedWorkouts = data.workouts
               .sort((a, b) => new Date(b.date) - new Date(a.date))
               .map(workout => {
@@ -86,7 +88,7 @@ export default function SearchFilter() {
     fetchWorkouts();
   }, []);
 
-  // Get available months from workouts
+  // Extract unique months from workout dates for month filter
   const availableMonths = useMemo(() => {
     const months = new Map();
     allWorkouts.forEach(workout => {
@@ -102,11 +104,11 @@ export default function SearchFilter() {
       .map(([monthYear]) => monthYear);
   }, [allWorkouts]);
 
-  // Filter workouts using useMemo to prevent unnecessary re-renders
+  // Apply all filters (search, quick filters, month) with memoization
   const filteredWorkouts = useMemo(() => {
     let results = allWorkouts;
 
-    // Apply search text filter
+    // Filter by search text (name, category, intensity, notes)
     if (searchText.trim()) {
       const lowercaseQuery = searchText.toLowerCase();
       results = results.filter(workout => {
@@ -119,9 +121,9 @@ export default function SearchFilter() {
       });
     }
 
-    // Apply quick filters
+    // Apply quick filters with OR logic within groups, AND between groups
     if (activeFilters.length > 0) {
-      // Separate time-based and category-based filters
+      // Split filters into time-based and category-based
       const timeFilters = activeFilters.filter(f => 
         ['This Week', 'This Month', 'Last Week', 'Last Month'].includes(f)
       );
@@ -236,12 +238,7 @@ export default function SearchFilter() {
     setSelectedMonth(null);
   }, []);
 
-  const Badge = ({ children }) => (
-    <View style={styles.badge}>
-      <Text style={styles.badgeText}>{children}</Text>
-    </View>
-  );
-
+  // Reusable UI Components
   const Card = ({ children, style }) => (
     <View style={[styles.card, style]}>
       {children}
@@ -251,6 +248,12 @@ export default function SearchFilter() {
   const CardContent = ({ children, style }) => (
     <View style={[styles.cardContent, style]}>
       {children}
+    </View>
+  );
+
+  const Badge = ({ children, style }) => (
+    <View style={[styles.badge, style]}>
+      <Text style={styles.badgeText}>{children}</Text>
     </View>
   );
 
@@ -559,7 +562,6 @@ export default function SearchFilter() {
   );
 }
 
-// --- Component Styles ---
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

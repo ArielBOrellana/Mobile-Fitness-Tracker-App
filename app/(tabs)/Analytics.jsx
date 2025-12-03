@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
 import Constants from 'expo-constants';
 
-// --- Custom Components simulated with basic RN structure ---
-
+// Reusable UI Components
 const Card = ({ children, style }) => (
   <View style={[styles.card, style]}>
     {children}
@@ -32,14 +29,13 @@ const Badge = ({ children, style }) => (
   </View>
 );
 
-// --- Main Component ---
-
 export default function Analytics() {
   const { currentUser } = useSelector((state) => state.user);
-  const [monthlyData, setMonthlyData] = useState([]);
-  const [breakdown, setBreakdown] = useState([]);
+  // State for analytics data
+  const [monthlyData, setMonthlyData] = useState([]);  // 7-month workout trend
+  const [breakdown, setBreakdown] = useState([]);      // Workout type breakdown
   const [loading, setLoading] = useState(true);
-  const [vsLastMonth, setVsLastMonth] = useState(0);
+  const [vsLastMonth, setVsLastMonth] = useState(0);   // % change vs last month
   const [mostImproved, setMostImproved] = useState({ type: 'Running', increase: 150 });
   const [bestStreak, setBestStreak] = useState({ days: 8, period: 'Last month' });
 
@@ -76,7 +72,7 @@ export default function Analytics() {
           if (response.ok) {
             const data = await response.json();
             
-            // Get the last 7 months
+            // Create array of last 7 months with zero counts
             const now = new Date();
             const months = [];
             for (let i = 6; i >= 0; i--) {
@@ -89,7 +85,7 @@ export default function Analytics() {
               });
             }
 
-            // Count workouts per month
+            // Aggregate workouts into monthly counts
             data.workouts.forEach(workout => {
               const workoutDate = new Date(workout.date);
               const monthIndex = months.findIndex(m => 
@@ -103,7 +99,7 @@ export default function Analytics() {
 
             setMonthlyData(months);
 
-            // Calculate vs last month
+            // Calculate percentage change from last month
             const currentMonthCount = months[6].count;
             const lastMonthCount = months[5].count;
             
@@ -116,7 +112,7 @@ export default function Analytics() {
               setVsLastMonth(0);
             }
 
-            // Calculate workout type breakdown
+            // Break down workouts by type for current and last month
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
             const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
@@ -151,7 +147,7 @@ export default function Analytics() {
 
             setBreakdown(breakdownData);
 
-            // Calculate most improved workout type
+            // Find workout type with highest percentage increase
             let maxIncrease = 0;
             let improvedType = '';
             
@@ -180,7 +176,7 @@ export default function Analytics() {
               setMostImproved({ type: 'N/A', increase: 0 });
             }
 
-            // Calculate best streak
+            // Calculate longest consecutive workout streak
             const sortedWorkouts = data.workouts
               .map(w => new Date(w.date))
               .sort((a, b) => a - b);
@@ -423,8 +419,6 @@ export default function Analytics() {
     </View>
   );
 }
-
-// --- Stylesheet ---
 
 const styles = StyleSheet.create({
   container: {

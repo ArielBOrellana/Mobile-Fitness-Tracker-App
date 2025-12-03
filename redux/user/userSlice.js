@@ -71,7 +71,7 @@ export const {
     signOutUserStart,
     signOutUserSuccess,
     signOutUserFailure
-    } = userSlice.actions;
+} = userSlice.actions;
 
 // Exporting the reducer to be used in the store
 export default userSlice.reducer;

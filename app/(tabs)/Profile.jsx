@@ -4,43 +4,44 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  TextInput,
 } from 'react-native';
 import { MaterialIcons } from 'expo-vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useState, useEffect } from 'react';
-import { Alert, TextInput } from 'react-native';
 import Constants from 'expo-constants';
 import { signInSuccess, signOutUserSuccess } from '../../redux/user/userSlice';
 import { router } from 'expo-router';
 
-// --- Main Profile/Settings Component (React Native) ---
-
 export default function Profile() {
-
   const { currentUser } = useSelector((state) => state.user)
   const dispatch = useDispatch();
 
-  // API URL resolution using env var or app.json extra
   const API_URL =
     process.env.EXPO_PUBLIC_API_URL ||
     Constants.expoConfig?.extra?.apiUrl ||
     Constants.manifest?.extra?.apiUrl ||
     "http://192.168.1.13:3000";
 
+  // Local state for monthly goal editing
   const [goalValue, setGoalValue] = useState(currentUser?.monthlyGoal ?? 0);
   const [saving, setSaving] = useState(false);
 
+  // Sync local goal value with Redux when user changes
   useEffect(() => {
     setGoalValue(currentUser?.monthlyGoal ?? 0);
   }, [currentUser]);
 
   const handleSaveGoal = async () => {
+    // Ensure user is authenticated
     if (!currentUser?._id) {
       Alert.alert('Not signed in', 'Please sign in to update your profile');
       return;
     }
     setSaving(true);
     try {
+      // Send update request to backend
       const res = await fetch(`${API_URL}/api/user/update/${currentUser._id}`, {
         method: 'PUT',
         headers: {
@@ -56,7 +57,7 @@ export default function Profile() {
       }
 
       const updated = await res.json();
-      // Update only the necessary user fields and keep token
+      // Update Redux with new goal while preserving other user data
       const payload = {
         _id: currentUser._id,
         username: currentUser.username,
@@ -74,6 +75,7 @@ export default function Profile() {
     }
   };
 
+  // Check if goal has been modified to show/hide save button
   const initialGoal = currentUser?.monthlyGoal ?? 0;
   const isDirty = Number(goalValue) !== Number(initialGoal);
   
@@ -98,7 +100,7 @@ export default function Profile() {
             <View style={{ flexDirection: 'column', gap: 24 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{currentUser.username[0]}</Text>
+                  <Text style={styles.avatarText}>{currentUser?.username?.[0] || 'U'}</Text>
                 </View>
 
                 <View style={{ flex: 1, gap: 16 }}>
@@ -106,7 +108,7 @@ export default function Profile() {
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Username</Text>
                     <View style={[styles.inputValue, { backgroundColor: 'transparent', borderWidth: 0, paddingVertical: 8 }]}> 
-                      <Text style={{ color: '#111827', fontSize: 16, fontWeight: '500' }}>{currentUser.username}</Text>
+                      <Text style={{ color: '#111827', fontSize: 16, fontWeight: '500' }}>{currentUser?.username || 'User'}</Text>
                     </View>
                   </View>
                   
@@ -194,10 +196,10 @@ export default function Profile() {
                         style: 'destructive',
                         onPress: async () => {
                           try {
-                            const res = await fetch(`${API_URL}/api/user/delete/${currentUser._id}`, {
+                            const res = await fetch(`${API_URL}/api/user/delete/${currentUser?._id}`, {
                               method: 'DELETE',
                               headers: {
-                                Authorization: currentUser?.token ? `Bearer ${currentUser.token}` : undefined,
+                                Authorization: currentUser?.token ? `Bearer ${currentUser?.token}` : undefined,
                               },
                             });
                             
@@ -230,7 +232,6 @@ export default function Profile() {
   );
 }
 
-// --- Component Styles ---
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

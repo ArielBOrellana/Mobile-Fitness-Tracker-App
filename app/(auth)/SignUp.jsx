@@ -13,6 +13,7 @@ import { Link, useRouter } from "expo-router";
 import Constants from 'expo-constants';
 
 export default function SignUp() {
+  // Form state for username, email, and password
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -21,13 +22,14 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Read API URL from environment variable, then app.json config, then hardcoded fallback
+  // API URL from environment or fallback
   const API_URL =
     process.env.EXPO_PUBLIC_API_URL ||
     Constants.expoConfig?.extra?.apiUrl ||
     Constants.manifest?.extra?.apiUrl ||
     "http://192.168.1.13:3000";
 
+  // Update form field values
   const handleChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -36,6 +38,7 @@ export default function SignUp() {
   };
 
   const handleSignUp = async () => {
+    // Validate all fields are filled
     if (!formData.username || !formData.email || !formData.password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -43,6 +46,7 @@ export default function SignUp() {
 
     try {
       setLoading(true);
+      // Send signup request to backend
       const res = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
@@ -51,6 +55,7 @@ export default function SignUp() {
         body: JSON.stringify(formData),
       });
 
+      // Handle registration errors
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const message = errBody.message || res.statusText || "Sign up failed";
@@ -62,7 +67,7 @@ export default function SignUp() {
       const data = await res.json().catch(() => ({}));
 
       setLoading(false);
-      // Backend currently returns a plain string on success; show a friendly message
+      // Navigate to sign in screen after successful registration
       Alert.alert("Success", "Account created! Please sign in.");
       router.replace("/(auth)/SignIn");
     } catch (error) {
@@ -209,17 +214,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.7 },
   loginText: { color: "#4338CA", fontSize: 18, fontWeight: "600" },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.3)" },
-  dividerText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
-    marginHorizontal: 8,
-  },
   signInContainer: { alignItems: "center", paddingTop: 16 },
   signInText: { color: "rgba(255,255,255,0.9)" },
   signInLink: {

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Platform, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
@@ -13,14 +13,7 @@ const Icons = {
   Clock: (props) => <Feather name="clock" {...props} />,
 };
 
-// Component for a styled block/card
-const StyledCard = ({ children, style }) => (
-  <View style={[styles.card, style]}>
-    {children}
-  </View>
-);
-
-// Component for a simple button/touchable area
+// Reusable UI Components
 const CardContent = ({ children, style }) => (
   <View style={[styles.cardContent, style]}>
     {children}
@@ -28,15 +21,15 @@ const CardContent = ({ children, style }) => (
 );
 
 export default function AddWorkout() {
-  const { currentUser } = useSelector((state) => state.user); // Get the current user from Redux
+  const { currentUser } = useSelector((state) => state.user);
 
-  // API URL resolution using env var or app.json extra
   const API_URL =
     process.env.EXPO_PUBLIC_API_URL ||
     Constants.expoConfig?.extra?.apiUrl ||
     Constants.manifest?.extra?.apiUrl ||
     "http://192.168.1.13:3000";
 
+  // Main workout form data
   const [formData, setFormData] = useState({
         type: 'Strength', 
         name: '', 
@@ -47,6 +40,7 @@ export default function AddWorkout() {
         notes: ''
     });
 
+  // Modal visibility and temporary picker values
   const [showDurationPicker, setShowDurationPicker] = useState(false);
   const [tempHours, setTempHours] = useState(0);
   const [tempMinutes, setTempMinutes] = useState(30);
@@ -69,7 +63,7 @@ export default function AddWorkout() {
 
   const intensityLevels = ['Light', 'Moderate', 'Intense'];
 
-  // Reset form when screen comes into focus
+  // Reset form to default values when screen gains focus
   useFocusEffect(
     useCallback(() => {
       setFormData({
@@ -117,15 +111,15 @@ export default function AddWorkout() {
     return `${hours} hr ${mins} min`;
   };
 
+  // Open date picker with current date value
   const openDatePicker = () => {
-    // Create a fresh date object from formData.date
     const dateToUse = formData.date instanceof Date ? new Date(formData.date.getTime()) : new Date();
     setTempDate(dateToUse);
     setShowDatePicker(true);
   };
 
+  // Open time picker with current time value
   const openTimePicker = () => {
-    // Use the existing time from formData if valid, otherwise use current time
     let timeToUse;
     if (formData.time instanceof Date && !isNaN(formData.time.getTime())) {
       timeToUse = new Date(formData.time.getTime());
@@ -172,12 +166,13 @@ export default function AddWorkout() {
   };
 
   const handleSubmit = async () => {
-    // Validate required fields
+    // Validate workout name
     if (!formData.name.trim()) {
       Alert.alert('Error', 'Please enter a workout name');
       return;
     }
 
+    // Validate duration
     if (formData.duration <= 0) {
       Alert.alert('Error', 'Please select a valid duration');
       return;
@@ -186,7 +181,7 @@ export default function AddWorkout() {
     setLoading(true);
 
     try {
-      // Combine date and time into a single datetime in local timezone
+      // Merge date and time into single datetime object
       const dateObj = formData.date instanceof Date ? formData.date : new Date(formData.date);
       const timeObj = formData.time instanceof Date ? formData.time : new Date(formData.time);
       

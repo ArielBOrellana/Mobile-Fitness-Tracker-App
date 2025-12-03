@@ -24,15 +24,17 @@ const API_URL =
   Constants.expoConfig?.extra?.apiUrl ||
   Constants.manifest?.extra?.apiUrl ||
   "http://192.168.1.13:3000";
-// ---------------------------------
 
 export default function SignIn() {
+  // Form state for email and password
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const { loading, error } = useSelector((state) => state.user);
+  // Get loading state from Redux
+  const { loading } = useSelector((state) => state.user);
 
   const router = useRouter();
   const dispatch = useDispatch();
 
+  // Update form field values
   const handleChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -41,20 +43,23 @@ export default function SignIn() {
   };
 
   const handleLogin = async () => {
+    // Validate form fields
     if (!formData.email || !formData.password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
+    // Set 5-second timeout for login request
     const TIMEOUT_MS = 5000;
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error("Login request timed out")), TIMEOUT_MS)
     );
 
     try {
+      // Set loading state in Redux
       dispatch(signInStart());
 
-      console.log("Attempting login to:", `${API_URL}/api/auth/signin`);
+      // Race between fetch request and timeout
 
       const res = await Promise.race([
         fetch(`${API_URL}/api/auth/signin`, {
@@ -67,7 +72,7 @@ export default function SignIn() {
         timeoutPromise,
       ]);
 
-      // If server responded with non-2xx, try to read JSON error body and show it
+      // Handle non-successful HTTP responses
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
         const message = errBody.message || res.statusText || "Login failed";
@@ -78,14 +83,14 @@ export default function SignIn() {
 
       const data = await res.json();
 
-      // Compatibility: backend error responses use { success: false, message }
+      // Handle backend-specific error format
       if (data && data.success === false) {
         dispatch(signInFailure(data.message));
         Alert.alert("Login Failed", data.message);
         return;
       }
 
-      // On success the backend returns the user object + token
+      // Store user data and token in Redux, navigate to Home
       dispatch(signInSuccess(data));
       router.replace("/(tabs)/Home");
     } catch (error) {
@@ -144,8 +149,6 @@ export default function SignIn() {
             </View>
           </View>
         </View>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
 
         <TouchableOpacity
           style={[styles.loginButton, loading && styles.buttonDisabled]}
@@ -228,7 +231,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.7 },
   loginText: { color: "#4338CA", fontSize: 18, fontWeight: "600" },
-  errorText: { color: "#FCA5A5", textAlign: "center", marginBottom: 16 },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",

@@ -10,21 +10,18 @@ import Svg, { Circle } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { router, useFocusEffect } from 'expo-router';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 
-// --- Custom Component Equivalents ---
-
-// 1. Card Component
-const Card = ({ children, style, contentStyle }) => (
+// Reusable UI Components
+const Card = ({ children, style }) => (
   <View style={[styles.cardContainer, style]}>
-    <View style={[styles.cardContent, contentStyle]}>{children}</View>
+    {children}
   </View>
 );
 
-// 2. Badge Component
 const Badge = ({ children, variant = 'default', style }) => {
   const badgeStyle = variant === 'secondary' ? styles.badgeSecondary : styles.badgeDefault;
   const textStyle = variant === 'secondary' ? styles.badgeSecondaryText : styles.badgeDefaultText;
@@ -36,7 +33,6 @@ const Badge = ({ children, variant = 'default', style }) => {
   );
 };
 
-// 3. Progress Component
 const Progress = ({ value, style, barStyle }) => {
   const progressWidth = `${value > 100 ? 100 : value}%`;
   return (
@@ -46,11 +42,10 @@ const Progress = ({ value, style, barStyle }) => {
   );
 };
 
-// --- Main Dashboard Component ---
-
 export default function Home() {
-
+  // Get current user from Redux
   const { currentUser } = useSelector((state) => state.user)
+  // State for dashboard statistics
   const [workoutsThisMonth, setWorkoutsThisMonth] = useState(0);
   const [workoutsByType, setWorkoutsByType] = useState([]);
   const [recentWorkouts, setRecentWorkouts] = useState([]);
@@ -72,7 +67,7 @@ export default function Home() {
   const currentDay = now.getDate();
   const daysLeftInMonth = lastDayOfMonth - currentDay;
 
-  // Calculate workout statistics
+  // Calculate workout progress against monthly goal
   const monthlyGoal = currentUser?.monthlyGoal || 20;
   const daysWorkedOut = workoutsThisMonth;
   const remainingDays = Math.max(0, monthlyGoal - daysWorkedOut);
@@ -84,9 +79,11 @@ export default function Home() {
       const fetchMonthlyWorkouts = async () => {
         try {
           setLoading(true);
+          // Define date range for current month
           const startOfMonth = new Date(currentYear, currentMonth, 1).toISOString();
           const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59).toISOString();
           
+          // Fetch workouts for current month
           const response = await fetch(
             `${API_URL}/api/workout?startDate=${startOfMonth}&endDate=${endOfMonth}`,
             {
@@ -107,7 +104,7 @@ export default function Home() {
             const thisMonthUniqueDays = uniqueDays.size;
             setWorkoutsThisMonth(thisMonthUniqueDays);
 
-            // Calculate workouts by type
+            // Group workouts by type with color mapping
             const typeColors = {
               'Strength': '#F59E0B',    // amber-500
               'Running': '#3B82F6',     // blue-500
@@ -117,12 +114,14 @@ export default function Home() {
               'Cycling': '#14B8A6',     // teal-500
             };
 
+            // Count workouts per type
             const typeCounts = {};
             data.workouts.forEach(workout => {
               const type = workout.type;
               typeCounts[type] = (typeCounts[type] || 0) + 1;
             });
 
+            // Calculate percentages for each workout type
             const totalWorkouts = data.workouts.length;
             const typeStats = Object.entries(typeCounts)
               .map(([name, count]) => ({
@@ -153,7 +152,7 @@ export default function Home() {
                 allData.workouts.map(w => new Date(w.date).toDateString())
               )].map(dateStr => new Date(dateStr)).sort((a, b) => b - a);
 
-              // Calculate current streak
+              // Calculate consecutive days with workouts from today backwards
               let streak = 0;
               const today = new Date();
               today.setHours(0, 0, 0, 0);
@@ -174,7 +173,7 @@ export default function Home() {
               }
               setCurrentStreak(streak);
 
-              // Calculate vs last month
+              // Calculate percentage change vs last month
               const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
               const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
               
