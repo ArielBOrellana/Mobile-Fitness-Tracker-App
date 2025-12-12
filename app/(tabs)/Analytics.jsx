@@ -30,8 +30,7 @@ const Badge = ({ children, style }) => (
 );
 
 export default function Analytics() {
-  const { currentUser } = useSelector((state) => state.user);
-  // State for analytics data
+  const { currentUser } = useSelector((state) => state.user); // State for analytics data 
   const [monthlyData, setMonthlyData] = useState([]);  // 7-month workout trend
   const [breakdown, setBreakdown] = useState([]);      // Workout type breakdown
   const [loading, setLoading] = useState(true);
@@ -56,7 +55,7 @@ export default function Analytics() {
 
   // Fetch workout data for the last 7 months
   useFocusEffect(
-    useCallback(() => {
+    useCallback(() => { 
       const fetchMonthlyWorkouts = async () => {
         try {
           setLoading(true);
@@ -103,6 +102,7 @@ export default function Analytics() {
             const currentMonthCount = months[6].count;
             const lastMonthCount = months[5].count;
             
+            // Avoid division by zero
             if (lastMonthCount > 0) {
               const percentChange = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
               setVsLastMonth(Math.round(percentChange));
@@ -123,7 +123,7 @@ export default function Analytics() {
               lastMonth: {}
             };
 
-            data.workouts.forEach(workout => {
+            data.workouts.forEach(workout => { // Count workouts by type for this month and last month
               const workoutDate = new Date(workout.date);
               const workoutMonth = workoutDate.getMonth();
               const workoutYear = workoutDate.getFullYear();
@@ -145,13 +145,13 @@ export default function Analytics() {
               color: workoutTypeColors[type]
             })).filter(item => item.thisMonth > 0 || item.lastMonth > 0);
 
-            setBreakdown(breakdownData);
+            setBreakdown(breakdownData); // Set breakdown state for rendering 
 
             // Find workout type with highest percentage increase
             let maxIncrease = 0;
             let improvedType = '';
             
-            breakdownData.forEach(item => {
+            breakdownData.forEach(item => { // Calculate percentage increase for each type 
               if (item.lastMonth > 0) {
                 const increase = ((item.thisMonth - item.lastMonth) / item.lastMonth) * 100;
                 if (increase > maxIncrease) {
@@ -167,7 +167,7 @@ export default function Analytics() {
               }
             });
 
-            if (improvedType) {
+            if (improvedType) { // Set most improved workout type state for display 
               setMostImproved({
                 type: improvedType,
                 increase: Math.round(maxIncrease)
@@ -257,6 +257,7 @@ export default function Analytics() {
     }, [currentUser.token])
   );
 
+  // Mockup chart component 
   const ChartMockup = () => {
     if (loading) {
       return (
@@ -269,6 +270,7 @@ export default function Analytics() {
     const maxCount = Math.max(...monthlyData.map(m => m.count), 1);
     const maxHeight = 120;
 
+    // Render bars for each month 
     return (
       <View style={styles.chartContainer}>
         {monthlyData.map((month, index) => {

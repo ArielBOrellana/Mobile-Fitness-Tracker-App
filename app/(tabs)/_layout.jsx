@@ -5,8 +5,10 @@ import { View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 export default function Layout() {
-  const segments = useSegments();
-  const active = segments[segments.length - 1] ? segments[segments.length - 1].toLowerCase() : '';
+  const segments = useSegments(); // Get current route segments to determine active tab 
+  const active = segments[segments.length - 1] ? segments[segments.length - 1].toLowerCase() : ''; // last segment is active tab name
+
+  // Define colors for active and inactive tab icons and text
 
   const ACTIVE_COLOR = '#4338CA';
   const INACTIVE_COLOR = '#9CA3AF';
@@ -22,6 +24,7 @@ export default function Layout() {
     marginHorizontal: 6,
   });
 
+  // Helpers to determine icon color based on active tab
   const iconColor = (name) => (active === name.toLowerCase() ? ACTIVE_COLOR : INACTIVE_COLOR);
 
   return (

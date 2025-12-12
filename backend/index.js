@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGO).then(() => {
 const app = express();
 
 // 2. Simplify CORS for Mobile
-// During development, it is best to allow ALL origins to prevent connection issues from your phone.
+// During development, it is best to allow ALL origins to prevent connection issues from the phone.
 app.use(cors()); 
 
 app.use(express.json());

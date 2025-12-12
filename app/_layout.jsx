@@ -3,10 +3,10 @@ import { Provider } from 'react-redux';
 import { LogBox } from 'react-native';
 import { store } from '../redux/store';
 
-LogBox.ignoreLogs(['componentWillMount has been renamed']);
-LogBox.ignoreAllLogs(false);
+LogBox.ignoreLogs(['componentWillMount has been renamed']); // Ignore specific warning 
+LogBox.ignoreAllLogs(false); // Ignore all log notifications 
 
-const originalWarn = console.warn;
+const originalWarn = console.warn; 
 console.warn = (...args) => {
   if (
     typeof args[0] === 'string' &&
@@ -17,9 +17,10 @@ console.warn = (...args) => {
   originalWarn(...args);
 };
 
+// Root layout wrapping the app with Redux Provider 
 export default function RootLayout() {
   return (
-    <Provider store={store}>
+    <Provider store={store}> 
       <Slot />
     </Provider>
   );

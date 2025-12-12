@@ -121,14 +121,14 @@ export default function AddWorkout() {
   // Open time picker with current time value
   const openTimePicker = () => {
     let timeToUse;
-    if (formData.time instanceof Date && !isNaN(formData.time.getTime())) {
+    if (formData.time instanceof Date && !isNaN(formData.time.getTime())) { 
       timeToUse = new Date(formData.time.getTime());
     } else {
       timeToUse = new Date();
     }
     
     setTempTime(timeToUse);
-    setTimePickerKey(prev => prev + 1);
+    setTimePickerKey(prev => prev + 1); // Force re-mount to refresh picker value
     setShowTimePicker(true);
   };
 
@@ -200,6 +200,7 @@ export default function AddWorkout() {
       const timezoneOffset = combinedDate.getTimezoneOffset() * 60000; // offset in milliseconds
       const localTimeAsUTC = new Date(combinedDate.getTime() - timezoneOffset);
 
+      // Prepare workout data for submission 
       const workoutData = {
         type: formData.type,
         name: formData.name.trim(),

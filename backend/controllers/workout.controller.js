@@ -3,7 +3,7 @@ import { errorHandler } from "../utils/error.js";
 
 // Helper: Build dynamic query from request params
 const buildWorkoutQuery = (req, userId) => {
-  const { q, type, intensity, minDuration, maxDuration, startDate, endDate } =
+  const { q, type, intensity, minDuration, maxDuration, startDate, endDate } = 
     req.query;
   const filter = { userRef: String(userId) };
 
@@ -55,18 +55,18 @@ export const createWorkout = async (req, res, next) => {
 // GET /api/workout -> list workouts with optional search & filters
 export const getWorkouts = async (req, res, next) => {
   try {
-    const userId = req.user?.id || req.user?._id;
+    const userId = req.user?.id || req.user?._id; // get user ID from auth middleware
     if (!userId) return next(errorHandler(401, "Unauthorized"));
 
-    const query = buildWorkoutQuery(req, userId);
+    const query = buildWorkoutQuery(req, userId); // dynamic query
     const page = parseInt(req.query.page || "1", 10);
-    const limit = parseInt(req.query.limit || "20", 10);
-    const skip = (page - 1) * limit;
+    const limit = parseInt(req.query.limit || "20", 10); // items per page
+    const skip = (page - 1) * limit; // pagination offset 
     const sort = req.query.sort || "-date"; // e.g. date, -date, duration, -duration
 
     const [total, workouts] = await Promise.all([
-      Workout.countDocuments(query),
-      Workout.find(query).sort(sort).skip(skip).limit(limit).lean(),
+      Workout.countDocuments(query), 
+      Workout.find(query).sort(sort).skip(skip).limit(limit).lean(), 
     ]);
 
     res.json({

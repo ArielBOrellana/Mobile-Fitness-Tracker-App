@@ -206,6 +206,7 @@ export default function Home() {
                 'Cycling': '🚴'
               };
 
+              // Format recent workouts for display 
               const formattedWorkouts = sortedWorkouts.map(workout => {
                 const workoutDate = new Date(workout.date);
                 const today = new Date();

@@ -137,9 +137,10 @@ export default function SearchFilter() {
           if (!workout.fullDate) return false;
           
           const workoutDate = workout.fullDate;
-          const now = new Date();
+          const now = new Date(); // Current date and time
           const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
           
+          // Check each time filter and see if workoutDate matches any 
           return timeFilters.some(filter => {
             switch (filter) {
               case 'This Week': {
@@ -279,7 +280,7 @@ export default function SearchFilter() {
               placeholderTextColor="#9CA3AF"
               value={searchText}
               onChangeText={handleTextChange}
-              onSubmitEditing={() => Keyboard.dismiss()}
+              onSubmitEditing={() => Keyboard.dismiss()} // Dismiss keyboard on submit 
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"
@@ -333,7 +334,7 @@ export default function SearchFilter() {
                 <Text style={[
                   styles.filterChipText,
                   activeFilters.includes(filter) && styles.filterChipTextActive
-                ]}>
+                ]}> 
                   {filter}
                 </Text>
               </TouchableOpacity>
